@@ -1,4 +1,4 @@
-export const value = [
+export const cellCoordinates = [
     {
         row: 0,
         col: 0
