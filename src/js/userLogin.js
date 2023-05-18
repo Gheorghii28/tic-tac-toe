@@ -1,4 +1,4 @@
-import { updateModeDependentButtons, modifyElementClass } from "./elementUtils.js";
+import { modifyElementClass } from "./elementUtils.js";
 import { allUsers, load, save } from "./userManagement.js";
 import { resetBoard } from "./gameLogic.js";
 
@@ -45,7 +45,6 @@ function openGameSession(userNameX, userCheckX, userNameY, userCheckY, idPopUp) 
     updateName("name-player-O", userNameY);
     modifyElementClass("game-page", "remove", "d-none");
     modifyElementClass(idPopUp, "add", "d-none");
-    updateModeDependentButtons(idPopUp);
 }
 
 function handleUserCreation(name, check) {

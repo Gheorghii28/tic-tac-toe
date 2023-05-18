@@ -1,3 +1,6 @@
+export const AUDIO_SUCCES = new Audio("../audio/winn.mp3");
+export const AUDIO_DRAW = new Audio("../audio/draw.mp3");
+
 export const cellCoordinates = [
     {
         row: 0,

@@ -1,15 +1,19 @@
+import { updateResultWithDraw } from "./elementUtils.js";
+
 export let allUsers = [];
 
 export function createWinResult(lostPlayer) {
+    let res = "victory";
     return {
-        result: "victory",
+        result: updateResultWithDraw(res),
         opponent: lostPlayer
     };
 }
 
 export function createLostResult(winPlayer) {
+    let res = "failure";
     return {
-        result: "failure",
+        result: updateResultWithDraw(res),
         opponent: winPlayer
     };
 }

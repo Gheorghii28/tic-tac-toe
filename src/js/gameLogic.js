@@ -1,18 +1,23 @@
 import { cellCoordinates } from "./gameData.js";
-import { modifyElementClass } from "./elementUtils.js";
+import { modifyElementClass, showDrawScreen, showWinScreen } from "./elementUtils.js";
 import { addRestartButtonEvent } from "./eventUtils.js";
-import { allUsers, createLostResult, createWinResult, load, save, } from "./userManagement.js";
+import { allUsers, createLostResult, createWinResult, load, save } from "./userManagement.js";
 
 let currentPlayer = 'X';
 let lostPlayer = "";
-let board = [['', '', ''], ['', '', ''], ['', '', '']];
+let board = [
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', '']
+];
 
-export function makeMark(row, col) {
+function makeMark(row, col) {
     if (board[row][col] === '') {
         updateCell(row, col, currentPlayer);
         togglePlayerOpacity(currentPlayer, "remove", "opacity-1");
         updateGameStatus(row, col);
         togglePlayerOpacity(currentPlayer, "add", "opacity-1");
+        console.log(row, col)
     }
 }
 
@@ -21,6 +26,8 @@ export function resetBoard() {
     clearBoard();
     toggleCellEvent("remove", "event-none");
     modifyElementClass("div-with-btn-restart", "add", "d-none");
+    modifyElementClass("win-screen", "add", "d-none");
+    modifyElementClass("draw-screen", "add", "d-none");
     togglePlayerOpacity("X", "add", "opacity-1");
     togglePlayerOpacity("O", "remove", "opacity-1");
 }
@@ -36,35 +43,52 @@ function clearBoard() {
 }
 
 function addGameResult(win, lost) {
+    lost = (win === "X") ? "O" : "X";
     const winPlayer = document.getElementById(`name-player-${win}`).textContent;
     const lostPlayer = document.getElementById(`name-player-${lost}`).textContent;
-    updateUserResults(winPlayer, lostPlayer)
+    updateUserResults(winPlayer, lostPlayer);
+    updateWinPlayer(winPlayer);
     save();
     load();
 }
 
 function updateUserResults(winPlayer, lostPlayer) {
-    for(let i = 0; i < allUsers.length; i++) {
-        if(allUsers[i][`name`] === winPlayer) {
+    for (let i = 0; i < allUsers.length; i++) {
+        if (allUsers[i][`name`] === winPlayer) {
             allUsers[i][`allResults`].push(createWinResult(lostPlayer));
-        } else if(allUsers[i][`name`] === lostPlayer) {
+        } else if (allUsers[i][`name`] === lostPlayer) {
             allUsers[i][`allResults`].push(createLostResult(winPlayer));
         }
     }
 }
 
+function updateWinPlayer(winPlayer) {
+    document.getElementById("win-player").textContent = winPlayer;
+}
+
 function updateGameStatus(row, col) {
+    handleMove(row, col);
+    handleGameEnd();
+}
+
+function handleMove(row, col) {
     if (checkWin(currentPlayer)) {
         showWinningLine(row, col, currentPlayer);
+        setLostPlayer(currentPlayer);
+        showWinScreen();
     } else if (checkDraw()) {
-
+        showDrawScreen();
     } else {
         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
     }
+}
+
+function handleGameEnd() {
     if (checkWin(currentPlayer) || checkDraw()) {
-        addRestartButtonEvent();
         modifyElementClass("div-with-btn-restart", "remove", "d-none");
+        addRestartButtonEvent();
         toggleCellEvent("add", "event-none");
+        addGameResult(currentPlayer, lostPlayer);
     }
 }
 
@@ -78,7 +102,6 @@ function showWinningLine(row, col, winPlayer) {
     const line = document.getElementById("line");
     checkWinningLine(row, col, line);
     finalizeWinningLine(line, winPlayer)
-    addGameResult(winPlayer, lostPlayer);
 }
 
 function checkWin(player) {
@@ -90,11 +113,11 @@ function checkWin(player) {
     );
 }
 
-function checkDraw() {
+export function checkDraw() {
     for (let row = 0; row < 3; row++) {
         for (let col = 0; col < 3; col++) {
             if (board[row][col] === '') {
-                return false; // The board is not full
+                return false;
             }
         }
     }
@@ -116,7 +139,6 @@ function checkWinningLine(row, col, line) {
 function finalizeWinningLine(line, winPlayer) {
     line.classList.add("opacity-1");
     line.classList.add("z-index-100");
-    lostPlayer = (winPlayer === "X") ? "O" : "X";
 }
 
 function setHorizontalLinePosition(line, row) {
@@ -132,7 +154,6 @@ function setHorizontalLinePosition(line, row) {
 
 function setVerticalLinePosition(line, col) {
     line.classList.add("rotate-90");
-
     if (col === 0) {
         line.style.left = `-34%`;
     } else if (col === 1) {
@@ -153,6 +174,53 @@ function togglePlayerOpacity(player, action, className) {
 
 function toggleCellEvent(action, className) {
     for (let i = 0; i < cellCoordinates.length; i++) {
-        document.getElementsByClassName("cell")[i].classList[action](className)
+        document.getElementsByClassName("cell")[i].classList[action](className);
     }
+}
+
+function toggleBoardEvent(action, className) {
+    document.getElementById("board").classList[action](className);
+}
+
+function computerMakeMove() {
+    const emptyCells = getEmptyCells();
+    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+    const randomCell = emptyCells[randomIndex];
+    const row = randomCell.row;
+    const col = randomCell.col;
+    makeMark(row, col);
+    toggleBoardEvent("remove", "event-none");
+}
+
+function getEmptyCells() {
+    const emptyCells = [];
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[i].length; j++) {
+            if (board[i][j] === '') {
+                emptyCells.push({ row: i, col: j });
+            }
+        }
+    }
+    return emptyCells;
+}
+
+function handleCellClick(row, col) {
+    makeMark(row, col);
+    if (!checkWin(currentPlayer) && !checkDraw()) {
+        toggleBoardEvent("add", "event-none");
+        setTimeout(computerMakeMove, 1000);
+    }
+}
+
+export function handlePlayerMove(row, col) {
+    const playerO = document.getElementById("name-player-O").textContent;
+    if (playerO === "Computer") {
+        handleCellClick(row, col);
+    } else {
+        makeMark(row, col);
+    }
+}
+
+function setLostPlayer(winPlayer) {
+    lostPlayer = (winPlayer === "X") ? "O" : "X";
 }
