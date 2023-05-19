@@ -1,5 +1,5 @@
 import { cellCoordinates } from "./gameData.js";
-import { modifyElementClass, showDrawScreen, showWinScreen } from "./elementUtils.js";
+import { hideResults, modifyElementClass, showDrawScreen, showWinScreen } from "./elementUtils.js";
 import { addRestartButtonEvent } from "./eventUtils.js";
 import { allUsers, createLostResult, createWinResult, load, save } from "./userManagement.js";
 
@@ -17,8 +17,8 @@ function makeMark(row, col) {
         togglePlayerOpacity(currentPlayer, "remove", "opacity-1");
         updateGameStatus(row, col);
         togglePlayerOpacity(currentPlayer, "add", "opacity-1");
-        console.log(row, col)
     }
+    hideResults();
 }
 
 export function resetBoard() {
@@ -30,6 +30,7 @@ export function resetBoard() {
     modifyElementClass("draw-screen", "add", "d-none");
     togglePlayerOpacity("X", "add", "opacity-1");
     togglePlayerOpacity("O", "remove", "opacity-1");
+    hideResults();
 }
 
 function clearBoard() {
@@ -95,7 +96,8 @@ function handleGameEnd() {
 function updateCell(row, col, currentPlayer) {
     const cell = document.getElementsByClassName('cell')[row * 3 + col];
     board[row][col] = currentPlayer;
-    cell.innerHTML = `<img src="../src/img/${currentPlayer}.png">`;
+    cell.innerHTML = `<img src="../src/img/${currentPlayer.toLowerCase()}.png">`;
+    cell.classList.add("event-none");
 }
 
 function showWinningLine(row, col, winPlayer) {
