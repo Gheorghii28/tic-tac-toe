@@ -51,12 +51,9 @@ function handleUserCreation(name, check) {
     load();
     if (name !== "error") {
         if (allUsers.length == 0) {
-            addUser(name); 
-            console.log("length = 0")
+            addUser(name);
         } else {
-            if (check) {
-                console.log("user existing");
-            } else {
+            if (!check) {
                 addUser(name);
             }
         }
